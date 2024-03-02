@@ -17,6 +17,7 @@ use App\Http\Controllers\PathaoApiController;
 Route::get('/city-list', [PathaoApiController::class, 'city_list'])->name('city.list');
 Route::get('/zone-list/{city_id}/{city_name}', [PathaoApiController::class, 'zone_list'])->name('zone.list');
 Route::get('/area-list/{zone_id}/{zone_name}/{city_id}/{city_name}', [PathaoApiController::class, 'area_list'])->name('area.list');
+Route::get('/store-list', [PathaoApiController::class, 'store_list'])->name('store.list');
 
 Route::get('/', function () {
     return view('welcome');

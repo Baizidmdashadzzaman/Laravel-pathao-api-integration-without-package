@@ -1,0 +1,246 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Parcel;
+class PathaoApiController extends Controller
+{
+
+    //authorization access information
+    public function access_info(){
+
+        $curl = curl_init();
+        $token_postdata = [
+
+            'client_id'     => globalSettings('pathao_client_id'),//put your pathao merchant client id
+            'client_secret' => globalSettings('pathao_client_secret'),//put your pathao merchant client secret
+            'username'      => globalSettings('pathao_username'),//put your pathao merchant user name
+            'password'      => globalSettings('pathao_password'),//put your pathao merchant password
+            'grant_type'    => globalSettings('pathao_grant_type'),//write only "password"
+        ];
+
+        curl_setopt_array($curl,
+            [
+                CURLOPT_URL=> "https://api-hermes.pathao.com/aladdin/api/v1/issue-token",
+                CURLOPT_RETURNTRANSFER=>true,
+                CURLOPT_ENCODING=>"",
+                CURLOPT_MAXREDIRS=>10,
+                CURLOPT_TIMEOUT=>10,
+                CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST=>"POST",
+                CURLOPT_POSTFIELDS   => json_encode($token_postdata),
+                CURLOPT_HTTPHEADER   => array(
+                        "cache-control:no-cache",
+                        "content-type:application/json"
+                    )
+            ]
+        );
+
+        $token_response            = curl_exec($curl);
+        $AuthorizationInfo         = json_decode($token_response);
+
+        return $AuthorizationInfo;
+    }
+
+    //create store
+    public function CreateStore($storeData){
+
+        $post_data = [
+                    // "name": <store name>,
+                    // "contact_name": <store contact person>,
+                    // "contact_number": <store phone no>,
+                    // "address":<address of the stores>,
+                    // "secondary_contact": <store secondary no>,
+                    // "city_id": <city id>,
+                    // "zone_id": <zone id>,
+                    // "area_id": <area id>
+                ];
+        $curl = curl_init();
+        // curl_setopt_array($curl,
+        //     [
+        //         CURLOPT_URL=> "https://api-hermes.pathao.com/aladdin/api/v1/stores",
+        //         CURLOPT_RETURNTRANSFER=>true,
+        //         CURLOPT_ENCODING=>"",
+        //         CURLOPT_MAXREDIRS=>10,
+        //         CURLOPT_TIMEOUT=>30,
+        //         CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1,
+        //         CURLOPT_CUSTOMREQUEST=>"POST",
+        //         CURLOPT_POSTFIELDS   => json_encode($post_data),
+        //         CURLOPT_HTTPHEADER   => array(
+        //                 "cache-control:no-cache",
+        //                 "content-type:application/json",
+        //                 "Authorization:Bearer ". $this->access_info()->access_token //access token from access info method
+        //             )
+        //     ]
+        // );
+        // $response       = curl_exec($curl);
+        // $result         = json_decode($response);
+        // return $result->data;
+
+    }
+
+    //get stores
+    public function getStores(){
+        $curl =curl_init();
+        curl_setopt_array($curl,
+            [
+                CURLOPT_URL=> "https://api-hermes.pathao.com/aladdin/api/v1/stores",
+                CURLOPT_RETURNTRANSFER=>true,
+                CURLOPT_ENCODING=>"",
+                CURLOPT_MAXREDIRS=>10,
+                // CURLOPT_TIMEOUT=>30,
+                CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST=>"GET",
+                CURLOPT_HTTPHEADER   => array(
+                        "cache-control:no-cache",
+                        "content-type:application/json",
+                        "Authorization:Bearer ". @$this->access_info()->access_token //access token from access info method
+                    )
+            ]
+        );
+
+        $response = curl_exec($curl);
+        $stores         = json_decode($response);
+         if(@$stores->data->data == null):
+            return [];
+         else:
+            return @$stores->data->data;
+         endif;
+
+    }
+
+    //get cities
+    public function getCities(){
+        $curl = curl_init();
+        curl_setopt_array($curl,
+            [
+                CURLOPT_URL=> "https://api-hermes.pathao.com/aladdin/api/v1/countries/1/city-list",
+                CURLOPT_RETURNTRANSFER=>true,
+                CURLOPT_ENCODING=>"",
+                CURLOPT_MAXREDIRS=>10,
+                // CURLOPT_TIMEOUT=>10,
+                CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST=>"GET",
+                CURLOPT_HTTPHEADER   => array(
+                        "cache-control:no-cache",
+                        "content-type:application/json",
+                        "Authorization:Bearer ". @$this->access_info()->access_token //access token from access info method
+                    )
+            ]
+        );
+
+        $response = curl_exec($curl);
+        $cities         = json_decode($response);
+        if(@$cities->data->data == null):
+            return [];
+         else:
+            return @$cities->data->data;
+         endif;
+    }
+    //get zones
+    public function getZones($city_id){
+        $curl = curl_init();
+        curl_setopt_array($curl,
+            [
+                CURLOPT_URL=> "https://api-hermes.pathao.com/aladdin/api/v1/cities/".$city_id."/zone-list",
+                CURLOPT_RETURNTRANSFER=>true,
+                CURLOPT_ENCODING=>"",
+                CURLOPT_MAXREDIRS=>10,
+                // CURLOPT_TIMEOUT=>10,
+                CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST=>"GET",
+                CURLOPT_HTTPHEADER   => array(
+                        "cache-control:no-cache",
+                        "content-type:application/json",
+                        "Authorization:Bearer ". @$this->access_info()->access_token //access token from access info method
+                    )
+            ]
+        );
+
+        $response = curl_exec($curl);
+        $zones         = json_decode($response);
+        if(@$zones->data->data == null):
+            return [];
+        else:
+            return @$zones->data->data;
+        endif;
+    }
+    //get areas
+    public function getAreas($zone_id){
+        $curl = curl_init();
+        curl_setopt_array($curl,
+            [
+                CURLOPT_URL=> "https://api-hermes.pathao.com/aladdin/api/v1/zones/".$zone_id."/area-list",
+                CURLOPT_RETURNTRANSFER=>true,
+                CURLOPT_ENCODING=>"",
+                CURLOPT_MAXREDIRS=>10,
+                // CURLOPT_TIMEOUT=>10,
+                CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST=>"GET",
+                CURLOPT_HTTPHEADER   => array(
+                        "cache-control:no-cache",
+                        "content-type:application/json",
+                        "Authorization:Bearer ". $this->access_info()->access_token //access token from access info method
+                    )
+            ]
+        );
+
+        $response = curl_exec($curl);
+        $areas         = json_decode($response);
+        return $areas->data->data;
+    }
+
+
+    //create parcel
+    public function createParcel(Request $request){
+
+      try {
+          $parcelInfo  = Parcel::find($request->parcel_id);
+          $hub_phone = $request->hub_phone ?? '';
+          $post_data = [
+                  "store_id"           => (int) $request->store_id,
+                  "merchant_order_id"  => $parcelInfo->tracking_id,
+                  "sender_name"        => 'RX Courier '.$parcelInfo->merchantShop->name,
+                  "sender_phone"       => $hub_phone,
+                  "recipient_name"     => $parcelInfo->customer_name,
+                  "recipient_phone"    => $parcelInfo->customer_phone,
+                  "recipient_address"  => $parcelInfo->customer_address,
+                  "recipient_city"     => (int) $request->city_id,
+                  "recipient_zone"     => (int) $request->zone_id,
+                  "recipient_area"     => (int) $request->area_id,
+                  "delivery_type"      => 48,
+                  "item_type"          => 2,
+                  "special_instruction"=> "",
+                  "item_quantity"      => 1,
+                  "item_weight"        => (float) $parcelInfo->weight,
+                  "amount_to_collect"  => (int) $parcelInfo->cash_collection,
+                  "item_description"   => ""
+              ];
+          $curl = curl_init();
+          curl_setopt_array($curl,
+              [
+                  CURLOPT_URL=> "https://api-hermes.pathao.com/aladdin/api/v1/orders",
+                  CURLOPT_RETURNTRANSFER=>true,
+                  CURLOPT_ENCODING=>"",
+                  CURLOPT_MAXREDIRS=>10,
+                  // CURLOPT_TIMEOUT=>30,
+                  CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1,
+                  CURLOPT_CUSTOMREQUEST=>"POST",
+                  CURLOPT_POSTFIELDS   => json_encode($post_data),
+                  CURLOPT_HTTPHEADER   => array(
+                          "cache-control:no-cache",
+                          "content-type:application/json",
+                          "Authorization:Bearer ". $this->access_info()->access_token //access token from access info method
+                      )
+              ]
+          );
+          $response       = curl_exec($curl);
+          $result         = json_decode($response);
+          return $result->data;
+      } catch (\Throwable $th) {
+        return false;
+      }
+
+    }
+}

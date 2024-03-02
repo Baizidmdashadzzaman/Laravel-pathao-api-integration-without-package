@@ -8,15 +8,24 @@ use Illuminate\Http\Request;
 class PathaoApiController extends Controller
 {
 
+
     public function access_info(){
 
         $curl = curl_init();
+        // $token_postdata = [
+
+        //     'client_id'     => "267",//put your pathao merchant client id
+        //     'client_secret' => "wRcaibZkUdSNz2EI9ZyuXLlNrnAv0TdPUPXMnD39",//put your pathao merchant client secret
+        //     'username'      => "test@pathao.com",//put your pathao merchant user name
+        //     'password'      => "lovePathao",//put your pathao merchant password
+        //     'grant_type'    => "password",//write only "password"
+        // ];
         $token_postdata = [
 
-            'client_id'     => "267",//put your pathao merchant client id
-            'client_secret' => "wRcaibZkUdSNz2EI9ZyuXLlNrnAv0TdPUPXMnD39",//put your pathao merchant client secret
-            'username'      => "test@pathao.com",//put your pathao merchant user name
-            'password'      => "lovePathao",//put your pathao merchant password
+            'client_id'     => "olejRBBejN",//put your pathao merchant client id
+            'client_secret' => "5dchLa0ZroqJdyizLwn3fHNKyPmiZpbTxUpO62uL",//put your pathao merchant client secret
+            'username'      => "baizid.md.ashadzzaman@gmail.com",//put your pathao merchant user name
+            'password'      => "baizid.md.ashadzzaman@gmail.com",//put your pathao merchant password
             'grant_type'    => "password",//write only "password"
         ];
 
@@ -126,6 +135,36 @@ class PathaoApiController extends Controller
         //return $areas->data->data;
 
         return view('pathao.arealist',compact('areas','zone_id','zone_name','city_id','city_name'));
+    }
+
+    public function store_list(){
+        $curl =curl_init();
+        curl_setopt_array($curl,
+            [
+                CURLOPT_URL=> "https://api-hermes.pathao.com/aladdin/api/v1/stores",
+                CURLOPT_RETURNTRANSFER=>true,
+                CURLOPT_ENCODING=>"",
+                CURLOPT_MAXREDIRS=>10,
+                // CURLOPT_TIMEOUT=>30,
+                CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST=>"GET",
+                CURLOPT_HTTPHEADER   => array(
+                        "cache-control:no-cache",
+                        "content-type:application/json",
+                        "Authorization:Bearer ". @$this->access_info()->access_token //access token from access info method
+                    )
+            ]
+        );
+
+        $response = curl_exec($curl);
+        $stores         = json_decode($response);
+         if(@$stores->data->data == null):
+            //return [];
+         else:
+            //return @$stores->data->data;
+         endif;
+
+         return view('pathao.storelist',compact('stores'));
     }
 
 
